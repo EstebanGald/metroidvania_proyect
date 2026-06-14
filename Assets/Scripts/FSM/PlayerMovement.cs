@@ -53,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Ground Check Settings")]
     [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.5f, 0.1f); // <-- ADD THIS (Width, Height)
+    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.5f, 0.1f); //(Width, Height)
     [SerializeField] private LayerMask whatIsGround;
 
     public Animator anim;
