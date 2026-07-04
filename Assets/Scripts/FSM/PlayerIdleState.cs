@@ -20,7 +20,14 @@ public class PlayerIdleState : PlayerState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
+        float yInput = Input.GetAxisRaw("Vertical");
+        if (player.IsTouchingClimbable() && Mathf.Abs(yInput) > 0.1f)
+        {
+            stateMachine.ChangeState(player.ClimbState);
+            return;
+        }
         player.CheckForAttack();
+        player.CheckForFireball();
         if (Mathf.Abs(player.horizontalInput) > 0.01f) // If the player presses left or right, tell the Brain to switch to the Run State!
         {
             stateMachine.ChangeState(player.RunState);
@@ -28,6 +35,8 @@ public class PlayerIdleState : PlayerState
         }
         //Check if the player is trying to jump! ---
         player.CheckForJump();
+        if (stateMachine.CurrentState != this)
+            return;
         //Check if we are falling or jumping ---
         if (!player.isGrounded)
         {

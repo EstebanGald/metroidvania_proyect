@@ -14,8 +14,17 @@ public class PlayerAirState : PlayerState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
+        // If we are touching a ladder AND the player presses Up or Down
+        float yInput = Input.GetAxisRaw("Vertical");
+
+        if (player.IsTouchingClimbable() && Mathf.Abs(yInput) > 0.1f)
+        {
+            stateMachine.ChangeState(player.ClimbState);
+            return; // Stop reading the rest of the logic!
+        }
         // --- Check if the player is trying to attack! ---
         player.CheckForAttack();
+        player.CheckForFireball();
         //Check if the player is trying to jump! ---
         player.CheckForJump();
 

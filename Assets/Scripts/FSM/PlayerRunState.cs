@@ -15,7 +15,16 @@ public class PlayerRunState : PlayerState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
+        // If we are touching a ladder AND the player presses Up or Down
+        float yInput = Input.GetAxisRaw("Vertical");
+
+        if (player.IsTouchingClimbable() && Mathf.Abs(yInput) > 0.1f)
+        {
+            stateMachine.ChangeState(player.ClimbState);
+            return; // Stop reading the rest of the logic!
+        }
         player.CheckForAttack();
+        player.CheckForFireball();
         //Check if the player is trying to jump! ---
         player.CheckForJump();
         //Check if we are falling or jumping ---
@@ -24,8 +33,7 @@ public class PlayerRunState : PlayerState
             stateMachine.ChangeState(player.AirState);
             return; // The 'return' keyword tells the code to stop reading the rest of this method
         }
-        // -----------------------------------------------
-        // --- NEW: ACCELERATION LOGIC -------------------
+        //ACCELERATION LOGIC -------------------
         // 1. Calculate what speed the player *wants* to go
         float targetSpeed = player.horizontalInput * player.maxSpeed;
         

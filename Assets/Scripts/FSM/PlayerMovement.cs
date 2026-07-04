@@ -4,10 +4,25 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    //Animation Debugging Variables ---
+    [Header("Debug")]
+    [SerializeField] private bool showDebugTools;
+    private List<string> animTransitionLog = new List<string>();
+    private string lastClipName;
 
+    //-------------------------------------------
     [Header("Gizmo Settings")]
     [SerializeField] private float wallCheckDistance = 0.5f;
     [SerializeField] private float wallCheckYOffset = -0.2f; 
+
+    [Header("Player Abilities")]
+    public bool vineGrowAbility = false;
+
+    [Header("Fireball Settings")]
+    public GameObject fireballPrefab;
+    public Transform firePoint;
+    public float castDuration = 0.5f; // Duration of the casting state
+    public float lastCastTime; // For casting buffering
 
     [Header("Movement")]
     public float maxSpeed = 10f; // The top speed the character can reach
@@ -48,17 +63,21 @@ public class PlayerMovement : MonoBehaviour
     //Variable Jump Height Settings ---
     [Tooltip("The gravity multiplier added when jump is released early")]
     public float jumpEndEarlyGravityModifier = 3f;
-    public float defaultGravity; // Used to remember what your normal gravity is
+    public float defaultGravity; //remember what your normal gravity is
     // ------------------------------------------
-
+    //Climbing Settings ------------------------
+    [Header("Climb Settings")]
+    public float climbSpeed = 5f;
+    public LayerMask whatIsClimbable;
+    public float defaultGravityClimb = 3f; //normal gravity scale
+    // ------------------------------------------
     [Header("Ground Check Settings")]
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.5f, 0.1f); //(Width, Height)
     [SerializeField] private LayerMask whatIsGround;
-
     public Animator anim;
     public Rigidbody2D body;
-    [HideInInspector] public float horizontalInput; //We make this public so our states can read it
+    [HideInInspector] public float horizontalInput;
     [SerializeField] private int jumpsLeft;
     public bool isGrounded;
 
@@ -70,6 +89,8 @@ public class PlayerMovement : MonoBehaviour
     public PlayerJumpState JumpState { get; private set; }
     public PlayerAttackState AttackState { get; private set; }
     public PlayerHurtState HurtState { get; private set; }
+    public PlayerClimbState ClimbState { get; private set; }
+    public PlayerCastState CastState { get; private set; }
 
     private void Awake()
     {
@@ -77,10 +98,9 @@ public class PlayerMovement : MonoBehaviour
         anim = GetComponent<Animator>();
 
         // Remember normal gravity ---
-        // We save whatever gravity scale you set in the Inspector so we can revert to it
         defaultGravity = body.gravityScale; 
         // ------------------------------------
-        //CREATE THE BRAIN AND THE STATE ---
+        //BRAIN AND STATE ---
         StateMachine = new PlayerStateMachine();
         IdleState = new PlayerIdleState(this, StateMachine);
         RunState = new PlayerRunState(this, StateMachine); 
@@ -88,28 +108,31 @@ public class PlayerMovement : MonoBehaviour
         JumpState = new PlayerJumpState(this, StateMachine); 
         AttackState = new PlayerAttackState(this, StateMachine);
         HurtState = new PlayerHurtState(this, StateMachine);
+        ClimbState = new PlayerClimbState(this, StateMachine);
+        CastState = new PlayerCastState(this, StateMachine);
         // -------------------------------------------
     }
-    // --- NEW: START METHOD ---
+    
     private void Start()
     {
-        // When the game starts, force the player into the Idle State
+        //Triggered on game Start
+        //force the player into the Idle State
         StateMachine.Initialize(IdleState);
     }
 
     private void Update()
     {
         //Read the input here, so all states can see what the player is pressing
-         horizontalInput = Input.GetAxisRaw("Horizontal");
+        horizontalInput = Input.GetAxisRaw("Horizontal");
          
         //RUN THE STATE MACHINE ---
         // This tells whatever state is currently active to run its LogicUpdate()
         StateMachine.CurrentState.LogicUpdate();
 
-        // Ground Check logic (using a Box for even footing)
+        // Ground Check logic (Box for even footing)
         isGrounded = Physics2D.OverlapBox(groundCheckPoint.position, groundCheckSize, 0f, whatIsGround);
 
-        // Reset jumps AND reset Coyote Time when grounded (with the 0.1f micro-bounce fix!)
+        // Reset jumps and Coyote Time when grounded (decimal to avoid bounce issues)
         if (isGrounded && body.velocity.y <= 0.1f)
         {
             coyoteTimeCounter = coyoteTime; 
@@ -135,6 +158,20 @@ public class PlayerMovement : MonoBehaviour
         anim.SetFloat("Speed", Mathf.Abs(horizontalInput));
         anim.SetBool("isGrounded", isGrounded);
         anim.SetFloat("yVelocity", body.velocity.y);
+
+        //Animation Transition Debugging ---
+        if (showDebugTools)
+        {
+            AnimatorClipInfo[] clipInfo = anim.GetCurrentAnimatorClipInfo(0);
+            string currentClip = clipInfo.Length > 0 ? clipInfo[0].clip.name : "None";
+
+            if (currentClip != lastClipName && lastClipName != null)
+            {
+                animTransitionLog.Add($"{lastClipName} -> {currentClip}");
+            }
+            lastClipName = currentClip;
+        }
+        //------------------------------------------------
     }
 
     private void OnDrawGizmos()
@@ -196,14 +233,75 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-    //"BRIDGE" METHOD:
+    public void CheckForFireball()
+    {
+        if (Input.GetKeyDown(KeyCode.C) && fireballPrefab != null && firePoint != null && Time.time >= lastCastTime + castDuration + 0.1f)
+        {
+            lastCastTime = Time.time;
+            StateMachine.ChangeState(CastState);
+        }
+    }
+    public void SpawnFireball()
+    {
+        GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
+        float dir = transform.localScale.x > 0 ? 1 : -1;
+        fireball.transform.right = new Vector2(dir, 0);
+    }
     public void TriggerKnockback()
     {
-        // We only want to get knocked back if we aren't already hurt!
+        // Knockback if Player is hurt
         if (StateMachine.CurrentState != HurtState)
         {
             StateMachine.ChangeState(HurtState);
         }
     }
-    //test
+    //animation debugging
+    private void OnGUI()
+    {
+        if (!showDebugTools)
+            return;
+        string currentState = StateMachine.CurrentState?.GetType().Name ?? "None";
+        AnimatorClipInfo[] clipInfo = anim.GetCurrentAnimatorClipInfo(0);
+        string clipName = clipInfo.Length > 0 ? clipInfo[0].clip.name : "No clip";
+        string transitionInfo = anim.IsInTransition(0) ? " [TRANSITIONING]" : "";
+
+        GUI.Label(new Rect(10, 10, 400, 20), $"State: {currentState}{transitionInfo}");
+        GUI.Label(new Rect(10, 30, 400, 20), $"Anim: {clipName}");
+        GUI.Label(new Rect(10, 50, 400, 20), $"Speed: {anim.GetFloat("Speed"):F2}");
+        GUI.Label(new Rect(10, 70, 400, 20), $"Grounded: {anim.GetBool("isGrounded")}");
+        GUI.Label(new Rect(10, 90, 400, 20), $"yVel: {anim.GetFloat("yVelocity"):F1}");
+    }
+    //OnDestroy Method for Animation Debugging ---
+    private void OnDestroy()
+    {
+        if (!showDebugTools)
+            return;
+        Debug.Log("====== ANIMATION TRANSITIONS ======");
+        foreach (string t in animTransitionLog)
+            Debug.Log(t);
+        Debug.Log("===================================");
+    }
+    // We can use a simple boolean check to see if we are inside a climbable trigger
+    public bool IsTouchingClimbable()
+    {
+        // You can use a BoxCast, OverlapCircle, or Unity's built-in collider check
+        return Physics2D.OverlapBox(transform.position, groundCheckSize, 0f, whatIsClimbable);
+    }
+    // This method resets the player's state to a default "safe" state, useful after respawning
+    public void ResetPlayerState()
+    {
+        body.velocity = Vector2.zero;
+        body.gravityScale = defaultGravity;
+        body.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        StateMachine.ChangeState(IdleState);
+
+        coyoteTimeCounter = 0f;
+        jumpBufferCounter = 0f;
+        jumpsLeft = canDoubleJump ? 2 : 1;
+
+        anim.SetBool("isClimbing", false);
+        
+        horizontalInput = 0f;
+    }
 }

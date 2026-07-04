@@ -89,7 +89,8 @@ public class Health : MonoBehaviour
         onDeath.Invoke();
         
         // 2. Destroy the object so it disappears from the game
-        // (Later, we can change this to play a death animation instead!)
-        Destroy(gameObject);
+        // TODO: Death animation
+        //deactivate the player instead of destroying it
+        gameObject.SetActive(false);
     }
 }
