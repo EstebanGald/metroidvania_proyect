@@ -14,8 +14,8 @@ public class EnemyBase : MonoBehaviour
     [Header("Combat Settings")]
     public float aggroRange = 5f; // How close the player gets before the enemy chases
     public float attackRange = 1.2f; // How close the enemy needs to be to swing
-    public float chaseSpeed = 5f; // Faster than patrol speed!
-    public LayerMask whatIsPlayer; // Set this to your Player layer
+    public float chaseSpeed = 5f; // Faster than patrol speed
+    public LayerMask whatIsPlayer;
     public Transform playerTarget { get; private set; } // Remembers where the player is
 
     [Header("Components")]
@@ -33,11 +33,11 @@ public class EnemyBase : MonoBehaviour
     public Transform ledgeCheck;
     public float ledgeCheckDistance = 0.5f;
     
-    public LayerMask whatIsGround; // Tells the sensors what to look for
+    public LayerMask whatIsGround; // Tells sensors what to look for
 
     private void Awake()
     {
-        // Setup the state machine
+        // Setup state machine
         StateMachine = new EnemyStateMachine();
         PatrolState = new EnemyPatrolState(this, StateMachine);
         ChaseState = new EnemyChaseState(this, StateMachine);
@@ -46,7 +46,7 @@ public class EnemyBase : MonoBehaviour
 
     private void Start()
     {
-        // Start patrolling immediately!
+        // Start patrolling
         StateMachine.Initialize(PatrolState);
     }
 
@@ -63,7 +63,7 @@ public class EnemyBase : MonoBehaviour
     // --- SENSORS ---
     public bool CheckForWall()
     {
-        // Shoots a laser forward. Returns TRUE if it hits a wall.
+        // Shoots a laser forward. Returns TRUE if it hits wall.
         return Physics2D.Raycast(wallCheck.position, Vector2.right * facingDirection, wallCheckDistance, whatIsGround);
     }
 
@@ -96,8 +96,6 @@ public class EnemyBase : MonoBehaviour
         Collider2D hit = Physics2D.OverlapCircle(transform.position, attackRange, whatIsPlayer);
         return hit != null;
     }
-
-    // This draws lines in the Unity Editor so you can physically see the sensors!
     private void OnDrawGizmos()
     {
         if (wallCheck != null)

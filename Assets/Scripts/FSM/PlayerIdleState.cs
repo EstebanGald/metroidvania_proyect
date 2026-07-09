@@ -1,9 +1,7 @@
 using UnityEngine;
 
-// Notice this inherits from PlayerState (our Blueprint!), NOT MonoBehaviour
 public class PlayerIdleState : PlayerState
 {
-    // This is the constructor. It passes the player and brain back to the Blueprint.
     public PlayerIdleState(PlayerMovement player, PlayerStateMachine stateMachine) : base(player, stateMachine)
     {
     }
@@ -11,10 +9,6 @@ public class PlayerIdleState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        // The moment we enter Idle, guarantee the player stops sliding
-        //player.body.velocity = new Vector2(0, player.body.velocity.y);
-        //test
-        //player.body.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
     }
 
     public override void LogicUpdate()
@@ -28,22 +22,21 @@ public class PlayerIdleState : PlayerState
         }
         player.CheckForAttack();
         player.CheckForFireball();
-        if (Mathf.Abs(player.horizontalInput) > 0.01f) // If the player presses left or right, tell the Brain to switch to the Run State!
+        if (Mathf.Abs(player.horizontalInput) > 0.01f) // If the player presses left or right, switch to the Run State
         {
             stateMachine.ChangeState(player.RunState);
-            return; // The 'return' keyword tells the code to stop reading the rest of this method
+            return; // The return keyword tells the code to stop reading the rest of this method
         }
-        //Check if the player is trying to jump! ---
         player.CheckForJump();
         if (stateMachine.CurrentState != this)
             return;
-        //Check if we are falling or jumping ---
+        //Check if we are falling or jumping 
         if (!player.isGrounded)
         {
             stateMachine.ChangeState(player.AirState);
-            return; // The 'return' keyword tells the code to stop reading the rest of this method
+            return; // The return keyword tells the code to stop reading the rest of this method
         }
-        //DECELERATION (SLIDING) LOGIC ---
+        //DECELERATION (SLIDING) LOGIC
         // Smoothly ramp the current X velocity towards 0
         float newVelocityX = Mathf.MoveTowards(player.body.velocity.x, 0f, player.deceleration * Time.deltaTime);
         
@@ -53,7 +46,7 @@ public class PlayerIdleState : PlayerState
         //Anti sliding logic ---
         if (Mathf.Abs(player.body.velocity.x) < 0.01f)
         {
-            // The slide is finished! Freeze the X position so slopes/seams can't push the player.
+            // The slide is finished Freeze the X position so slopes/seams can't push the player.
             player.body.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
         }
         // -----------------------------------------------

@@ -12,13 +12,13 @@ public class PlayerHurtState : PlayerState
     {
         base.Enter();
         
-        // 1. Fire the hurt animation
+        // Fire the hurt animation
         player.anim.SetTrigger("take_damage");
 
-        // 2. Set the lockout timer
+        //Set the lockout timer
         hurtTimer = player.hurtDuration;
 
-        // 3. Apply the knockback force! 
+        //Apply the knockback force
         // We push them UP, and horizontally OPPOSITE to the direction they are currently facing
         float knockbackDir = player.transform.localScale.x * -1f; // Reverses their facing direction
         player.body.velocity = new Vector2(player.knockbackForce.x * knockbackDir, player.knockbackForce.y);

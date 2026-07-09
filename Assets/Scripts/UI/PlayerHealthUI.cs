@@ -21,10 +21,10 @@ public class PlayerHealthUI : MonoBehaviour
         UpdateHearts();
     }
 
-    // This method will be triggered by your Unity Event!
+    // This method will be triggered by Unity Event
     public void UpdateHearts()
     {
-        // Loop through all the UI images we have
+        // Loop through all the UI images
         for (int i = 0; i < heartImages.Length; i++)
         {
             // If the image's index is less than the current health, show a full heart

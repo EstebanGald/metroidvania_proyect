@@ -1,19 +1,18 @@
 using UnityEngine;
 
-// Notice this also does NOT inherit from MonoBehaviour!
 public class PlayerStateMachine
 {
     // This variable holds whatever state the player is currently in
     public PlayerState CurrentState { get; private set; }
 
-    // This runs when the game first starts to put the player in a default state (like Idle)
+    // This runs when the game first starts to put the player in a default state
     public void Initialize(PlayerState startingState)
     {
         CurrentState = startingState;
         CurrentState.Enter();
     }
 
-    // This is the magic method we will call to switch from Running to Jumping, etc.
+    // This method will call to switch from Running to others
     public void ChangeState(PlayerState newState)
     {
         CurrentState.Exit();     // Clean up the old state

@@ -8,14 +8,14 @@ public class EnemyChaseState : EnemyState
     {
         base.LogicUpdate();
 
-        //Did the player run away out of our aggro range?
+        //Did the player run away out of aggro range
         if (!enemy.DetectPlayer())
         {
             stateMachine.ChangeState(enemy.PatrolState);
             return;
         }
 
-        //Did we get close enough to attack?
+        //Did get close enough to attack
         if (enemy.IsPlayerInAttackRange())
         {
             stateMachine.ChangeState(enemy.AttackState);
@@ -28,7 +28,7 @@ public class EnemyChaseState : EnemyState
         else if (enemy.playerTarget.position.x < enemy.transform.position.x && enemy.facingDirection == 1)
             enemy.Flip();
 
-        //Move towards the player (but stop if there is a cliff or wall!)
+        //Move towards the player (but stop if there is a cliff or wall)
         if (enemy.CheckForWall() || enemy.CheckForLedge())
         {
             // Hard stop at the edge of the cliff, just glare at the player

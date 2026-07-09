@@ -12,10 +12,10 @@ public class EnemyAttackState : EnemyState
         // Stop moving to attack
         enemy.body.velocity = new Vector2(0f, enemy.body.velocity.y);
         
-        // Set the timer (we can make this a variable in EnemyBase later)
+        // Set the timer
         attackTimer = 1f; 
         
-        // TODO: Fire attack animation here!
+        // TODO: Fire attack animation
         Debug.Log("Enemy swings at the player!"); 
     }
 
@@ -27,7 +27,6 @@ public class EnemyAttackState : EnemyState
 
         if (attackTimer <= 0f)
         {
-            // Attack finished! Go back to chasing (which will instantly attack again if still in range)
             stateMachine.ChangeState(enemy.ChaseState);
         }
     }

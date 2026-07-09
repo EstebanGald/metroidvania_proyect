@@ -16,10 +16,10 @@ public class EnemyPatrolState : EnemyState
             return; // Stop reading the patrol logic
         }
 
-        //Check the sensors: Did we hit a wall OR find a ledge?
+        //Check the sensors: Did we hit a wall OR find a ledge
         if (enemy.CheckForWall() || enemy.CheckForLedge())
         {
-            // Turn around!
+            // Turn around
             enemy.Flip();
         }
         

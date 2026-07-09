@@ -37,25 +37,22 @@ public class Health : MonoBehaviour
 
     public void TakeDamage(int damageAmount)
     {
-        // 1. THE GATEKEEPER: If we are invincible, completely ignore the hit!
+        //If we are invincible, completely ignore the hit
         if (isInvincible) return;
-        // 1. Subtract the damage
+        //Subtract the damage
         currentHealth -= damageAmount;
-        
-        // 2. Shout to the Inspector: "I took damage!"
         onTakeDamage.Invoke();
 
-        // 3. Check if we died
+        //Check if we died
         if (currentHealth <= 0)
         {
             Die();
         } else {
-            // 5. Start the Invincibility timer and flashing effect!
+            //Start the Invincibility timer and flashing effect!
             StartCoroutine(InvincibilityRoutine());
         }
     }
 
-    // A Coroutine allows us to pause code execution (like a timer) without pausing the whole game
     private IEnumerator InvincibilityRoutine()
     {
         // Turn ON invincibility
