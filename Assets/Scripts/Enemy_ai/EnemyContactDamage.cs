@@ -17,16 +17,15 @@ public class EnemyContactDamage : MonoBehaviour
         TryToDamage(collision.gameObject);
     }
 
-    // A helper method to keep our code clean
+    //helper method
     private void TryToDamage(GameObject hitObject)
     {
-        // 1. Did we hit the Player?
+        //hit the Player?
         if (hitObject.CompareTag("Player"))
         {
-            // 2. Look for the Health script on the Player
+            //Look for the Health script on the Player
             Health playerHealth = hitObject.GetComponent<Health>();
 
-            // 3. If they have Health, hurt them!
             if (playerHealth != null)
             {
                 playerHealth.TakeDamage(damageAmount);

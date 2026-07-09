@@ -9,14 +9,14 @@ public class EnemyPatrolState : EnemyState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
-        // --- NEW: Check for the player! ---
+        //Check for the player
         if (enemy.isAggressive && enemy.DetectPlayer())
         {
             stateMachine.ChangeState(enemy.ChaseState);
-            return; // Stop reading the patrol logic!
+            return; // Stop reading the patrol logic
         }
 
-        // 1. Check the sensors: Did we hit a wall OR find a ledge?
+        //Check the sensors: Did we hit a wall OR find a ledge?
         if (enemy.CheckForWall() || enemy.CheckForLedge())
         {
             // Turn around!

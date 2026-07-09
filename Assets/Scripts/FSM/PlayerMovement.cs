@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -10,6 +11,12 @@ public class PlayerMovement : MonoBehaviour
     private List<string> animTransitionLog = new List<string>();
     private string lastClipName;
 
+    [Header("Key Collection")]
+    public int keysCollected = 0;
+    public int keysRequired = 3;
+    public UnityEvent onKeyCollected;
+    public UnityEvent onAllKeysCollected;
+
     //-------------------------------------------
     [Header("Gizmo Settings")]
     [SerializeField] private float wallCheckDistance = 0.5f;
@@ -17,6 +24,11 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Player Abilities")]
     public bool vineGrowAbility = false;
+    public bool fireballAbility = false;
+    public bool canDoubleJump = false;
+
+    [Header("VineGrow Settings")]
+    public VineGrow currentVineGrow; // Reference to the current vine being grown
 
     [Header("Fireball Settings")]
     public GameObject fireballPrefab;
@@ -39,7 +51,6 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Jumping")]
     public float jumpPower;
-    [SerializeField] private bool canDoubleJump;
     //Falling Physics ---
     [Tooltip("Multiplier applied to gravity when falling down")]
     public float fallGravityMultiplier = 2f; 
@@ -91,6 +102,7 @@ public class PlayerMovement : MonoBehaviour
     public PlayerHurtState HurtState { get; private set; }
     public PlayerClimbState ClimbState { get; private set; }
     public PlayerCastState CastState { get; private set; }
+    public PlayerVineCastState VineCastState { get; private set; } 
 
     private void Awake()
     {
@@ -110,6 +122,7 @@ public class PlayerMovement : MonoBehaviour
         HurtState = new PlayerHurtState(this, StateMachine);
         ClimbState = new PlayerClimbState(this, StateMachine);
         CastState = new PlayerCastState(this, StateMachine);
+        VineCastState = new PlayerVineCastState(this, StateMachine);
         // -------------------------------------------
     }
     
@@ -235,7 +248,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void CheckForFireball()
     {
-        if (Input.GetKeyDown(KeyCode.C) && fireballPrefab != null && firePoint != null && Time.time >= lastCastTime + castDuration + 0.1f)
+        if (fireballAbility && Input.GetKeyDown(KeyCode.C) && fireballPrefab != null && firePoint != null && Time.time >= lastCastTime + castDuration + 0.1f)
         {
             lastCastTime = Time.time;
             StateMachine.ChangeState(CastState);
@@ -246,6 +259,11 @@ public class PlayerMovement : MonoBehaviour
         GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
         float dir = transform.localScale.x > 0 ? 1 : -1;
         fireball.transform.right = new Vector2(dir, 0);
+    }
+    public void StartVineCast(VineGrow vine)
+    {
+        currentVineGrow = vine;
+        StateMachine.ChangeState(VineCastState);
     }
     public void TriggerKnockback()
     {
@@ -290,6 +308,12 @@ public class PlayerMovement : MonoBehaviour
     // This method resets the player's state to a default "safe" state, useful after respawning
     public void ResetPlayerState()
     {
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) sr.color = Color.white;
+
+        // Force animator back to default state
+        anim.Rebind();
+
         body.velocity = Vector2.zero;
         body.gravityScale = defaultGravity;
         body.constraints = RigidbodyConstraints2D.FreezeRotation;

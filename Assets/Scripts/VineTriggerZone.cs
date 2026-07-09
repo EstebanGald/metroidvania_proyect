@@ -28,7 +28,7 @@ public class VineTriggerZone : MonoBehaviour
     {
         if (player.vineGrowAbility && playerInZone && Input.GetKeyDown(KeyCode.K) && vineGrow != null)
         {
-            vineGrow.StartGrowing();
+            player.StartVineCast(vineGrow);
             if (destroyOnTrigger)
                 Destroy(gameObject);
         }

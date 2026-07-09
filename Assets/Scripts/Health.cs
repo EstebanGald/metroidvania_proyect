@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.Events; // <-- We need this to use Unity Events!
+using UnityEngine.Events;
 using System.Collections;
 
 public class Health : MonoBehaviour
 {
     [Header("Health Settings")]
-    [Tooltip("How many 'Masks' or 'Hearts' this entity has")]
+    [Tooltip("How many Hearts")]
     public int maxHealth = 3; 
     public int currentHealth;
 
@@ -15,9 +15,13 @@ public class Health : MonoBehaviour
     private bool isInvincible = false;
     private SpriteRenderer spriteRend;
 
-    [Header("Events (Hook these up in the Inspector)")]
+    [Header("Events")]
     public UnityEvent onTakeDamage;
     public UnityEvent onDeath;
+
+    [Header("Death Behavior")]
+    public bool disableOnDeath = true;
+
 
     private void Awake()
     {
@@ -85,12 +89,12 @@ public class Health : MonoBehaviour
 
     private void Die()
     {
-        // 1. Shout to the Inspector: "I died!"
         onDeath.Invoke();
         
-        // 2. Destroy the object so it disappears from the game
-        // TODO: Death animation
-        //deactivate the player instead of destroying it
-        gameObject.SetActive(false);
+        //Destroy the object so it disappears from the game
+        //TODO: Death animation
+        //If GameObject is an enemy, disable it instead of destroying it so we can reuse it later
+        if (disableOnDeath)
+            gameObject.SetActive(false);
     }
 }
