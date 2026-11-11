@@ -10,3 +10,7 @@ Para diseño de Nivel se siguieron varias prácticas de Hollow Knight y Blasphem
 
 ## Desarrollo y objetivos
 Este prototipo fue utilizado para mi proyecto de tesis, realizado en Unity
+
+## Prueba el Prototipo desde el browser
+
+[▶ Jugar prototipo](https://metroidvaniaprototype.vercel.app)
